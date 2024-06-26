@@ -1,30 +1,41 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // List of sample Bible verses
-    const verses = [
-        {
-            text: "For I know the plans I have for you, declares the Lord, plans for welfare and not for evil, to give you a future and a hope. - Jeremiah 29:11",
-            image: "https://example.com/path-to-your-image1.jpg"
-        },
-        {
-            text: "I can do all things through him who strengthens me. - Philippians 4:13",
-            image: "https://example.com/path-to-your-image2.jpg"
-        },
-        {
-            text: "The Lord is my shepherd; I shall not want. - Psalm 23:1",
-            image: "https://example.com/path-to-your-image3.jpg"
-        },
-        // Add more verses and images as needed
-    ];
+    const unsplashAccessKey = '2YHCIylev3KFxeBcNLpnhXfBr3AFW1MddiZXlSVBlzw';
+    const bibleVerseAPI = 'https://beta.ourmanna.com/api/v1/get/?format=json&order=daily';
 
-    // Function to get today's verse
-    function getTodaysVerse() {
-        const today = new Date();
-        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-        return verses[dayOfYear % verses.length];
+    // Function to fetch daily Bible verse
+    async function fetchVerse() {
+        try {
+            const response = await fetch(bibleVerseAPI);
+            const data = await response.json();
+            const verseText = data.verse.details.text + " - " + data.verse.details.reference;
+            return verseText;
+        } catch (error) {
+            console.error('Error fetching the Bible verse:', error);
+            return 'Error fetching the verse.';
+        }
     }
 
-    // Set the verse and image
-    const verse = getTodaysVerse();
-    document.getElementById('verseText').innerText = verse.text;
-    document.getElementById('verseImage').src = verse.image;
+    // Function to fetch a random image from Unsplash
+    async function fetchImage() {
+        try {
+            const response = await fetch(`https://api.unsplash.com/photos/random?query=nature&client_id=${unsplashAccessKey}`);
+            const data = await response.json();
+            return data.urls.regular;
+        } catch (error) {
+            console.error('Error fetching the image:', error);
+            return 'https://via.placeholder.com/600x400';
+        }
+    }
+
+    // Function to update the verse and image on the page
+    async function updateVerseAndImage() {
+        const verseText = await fetchVerse();
+        const imageUrl = await fetchImage();
+
+        document.getElementById('verseText').innerText = verseText;
+        document.getElementById('verseImage').src = imageUrl;
+    }
+
+    // Initialize the verse and image
+    updateVerseAndImage();
 });
