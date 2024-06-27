@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verse of the Day</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="verse-styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Verse of the Day</h1>
-        <div class="verse-container">
-            <img id="verseImage" src="" alt="Verse Image">
-            <p id="verseText"></p>
-        </div>
+        <header>
+            <h1>Verse of the Day</h1>
+        </header>
+        <main>
+            <div id="verse-container">
+                <img id="verse-image" alt="Verse of the Day Image" style="display: none;">
+                <p id="verse-text">Loading verse...</p>
+            </div>
+        </main>
     </div>
-    <script src="script.js"></script>
+    <script src="verse-script.js"></script>
 </body>
 </html>
