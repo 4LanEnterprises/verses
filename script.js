@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const unsplashAccessKey = 'YOUR_UNSPLASH_ACCESS_KEY'; // Replace with your actual Unsplash Access Key
+    const unsplashAccessKey = '2YHCIylev3KFxeBcNLpnhXfBr3AFW1MddiZXlSVBlzw'; // Replace with your actual Unsplash Access Key
     const verseAPI = 'https://beta.ourmanna.com/api/v1/get/?format=json&order=daily';
 
     // Function to fetch daily Bible verse
