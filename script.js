@@ -1,56 +1,47 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const proxyUrl = 'https://api.allorigins.win/get?url=';
-    const targetUrl = encodeURIComponent('https://www.bible.com/verse-of-the-day');
+document.addEventListener('DOMContentLoaded', function() {
+    const unsplashAccessKey = 'YOUR_UNSPLASH_ACCESS_KEY'; // Replace with your actual Unsplash Access Key
+    const verseAPI = 'https://beta.ourmanna.com/api/v1/get/?format=json&order=daily';
 
-    fetch(proxyUrl + targetUrl)
-        .then(response => response.json())
-        .then(data => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.contents, 'text/html');
-
-            console.log('Fetched HTML:', doc.documentElement.innerHTML);
-
-            const imageElement = doc.querySelector('img[alt*=" - "]');
-            console.log('Image Element:', imageElement);
-
-            if (imageElement) {
-                const srcset = imageElement.getAttribute('srcset');
-                console.log('Srcset:', srcset);
-
-                const srcsetParts = srcset.split(',').map(part => part.trim());
-                const highResImage = srcsetParts.find(part => part.endsWith('2x')).split(' ')[0];
-                console.log('High Res Image URL:', highResImage);
-
-                if (highResImage) {
-                    const fullUrl = 'https://www.bible.com' + highResImage;
-                    console.log('Full URL:', fullUrl);
-                    const img = document.getElementById('verse-image');
-                    img.src = fullUrl;
-                    img.style.display = 'block';
-
-                    const text = document.getElementById('verse-text');
-                    text.innerHTML = imageElement.alt;
-                    adjustTextSize(text, img);
-                } else {
-                    document.getElementById('verse-text').textContent = "Verse image not found.";
-                }
-            } else {
-                document.getElementById('verse-text').textContent = "Verse image not found.";
+    // Function to fetch daily Bible verse
+    async function fetchVerse() {
+        try {
+            const response = await fetch(verseAPI);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        })
-        .catch(error => {
-            console.error('Error fetching the verse of the day:', error);
-            document.getElementById('verse-text').textContent = "Failed to load verse.";
-        });
-});
-
-const adjustTextSize = (textElement, imgElement) => {
-    const containerWidth = imgElement.clientWidth;
-    const containerHeight = imgElement.clientHeight;
-    textElement.style.fontSize = `${containerWidth / 20}px`;
-
-    while (textElement.scrollWidth > containerWidth || textElement.scrollHeight > containerHeight) {
-        const fontSize = parseFloat(window.getComputedStyle(textElement).fontSize);
-        textElement.style.fontSize = `${fontSize - 1}px`;
+            const data = await response.json();
+            const verseText = `${data.verse.details.text} - ${data.verse.details.reference}`;
+            return verseText;
+        } catch (error) {
+            console.error('Error fetching the verse:', error);
+            return 'A Bible verse will appear here daily.';
+        }
     }
-};
+
+    // Function to fetch a random image from Unsplash
+    async function fetchImage() {
+        try {
+            const response = await fetch(`https://api.unsplash.com/photos/random?query=bible&client_id=${unsplashAccessKey}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data.urls.regular;
+        } catch (error) {
+            console.error('Error fetching the image:', error);
+            return 'https://via.placeholder.com/600x400';
+        }
+    }
+
+    // Function to update the verse and image on the page
+    async function updateVerseAndImage() {
+        const verseText = await fetchVerse();
+        const imageUrl = await fetchImage();
+
+        document.getElementById('verseText').innerText = verseText;
+        document.getElementById('verseImage').src = imageUrl;
+    }
+
+    // Initialize the verse and image
+    updateVerseAndImage();
+});
