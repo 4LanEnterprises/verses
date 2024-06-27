@@ -1,41 +1,56 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const unsplashAccessKey = '2YHCIylev3KFxeBcNLpnhXfBr3AFW1MddiZXlSVBlzw';
-    const bibleVerseAPI = 'https://beta.ourmanna.com/api/v1/get/?format=json&order=daily';
+document.addEventListener("DOMContentLoaded", () => {
+    const proxyUrl = 'https://api.allorigins.win/get?url=';
+    const targetUrl = encodeURIComponent('https://www.bible.com/verse-of-the-day');
 
-    // Function to fetch daily Bible verse
-    async function fetchVerse() {
-        try {
-            const response = await fetch(bibleVerseAPI);
-            const data = await response.json();
-            const verseText = data.verse.details.text + " - " + data.verse.details.reference;
-            return verseText;
-        } catch (error) {
-            console.error('Error fetching the Bible verse:', error);
-            return 'Error fetching the verse.';
-        }
-    }
+    fetch(proxyUrl + targetUrl)
+        .then(response => response.json())
+        .then(data => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, 'text/html');
 
-    // Function to fetch a random image from Unsplash
-    async function fetchImage() {
-        try {
-            const response = await fetch(`https://api.unsplash.com/photos/random?query=nature&client_id=${unsplashAccessKey}`);
-            const data = await response.json();
-            return data.urls.regular;
-        } catch (error) {
-            console.error('Error fetching the image:', error);
-            return 'https://via.placeholder.com/600x400';
-        }
-    }
+            console.log('Fetched HTML:', doc.documentElement.innerHTML);
 
-    // Function to update the verse and image on the page
-    async function updateVerseAndImage() {
-        const verseText = await fetchVerse();
-        const imageUrl = await fetchImage();
+            const imageElement = doc.querySelector('img[alt*=" - "]');
+            console.log('Image Element:', imageElement);
 
-        document.getElementById('verseText').innerText = verseText;
-        document.getElementById('verseImage').src = imageUrl;
-    }
+            if (imageElement) {
+                const srcset = imageElement.getAttribute('srcset');
+                console.log('Srcset:', srcset);
 
-    // Initialize the verse and image
-    updateVerseAndImage();
+                const srcsetParts = srcset.split(',').map(part => part.trim());
+                const highResImage = srcsetParts.find(part => part.endsWith('2x')).split(' ')[0];
+                console.log('High Res Image URL:', highResImage);
+
+                if (highResImage) {
+                    const fullUrl = 'https://www.bible.com' + highResImage;
+                    console.log('Full URL:', fullUrl);
+                    const img = document.getElementById('verse-image');
+                    img.src = fullUrl;
+                    img.style.display = 'block';
+
+                    const text = document.getElementById('verse-text');
+                    text.innerHTML = imageElement.alt;
+                    adjustTextSize(text, img);
+                } else {
+                    document.getElementById('verse-text').textContent = "Verse image not found.";
+                }
+            } else {
+                document.getElementById('verse-text').textContent = "Verse image not found.";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching the verse of the day:', error);
+            document.getElementById('verse-text').textContent = "Failed to load verse.";
+        });
 });
+
+const adjustTextSize = (textElement, imgElement) => {
+    const containerWidth = imgElement.clientWidth;
+    const containerHeight = imgElement.clientHeight;
+    textElement.style.fontSize = `${containerWidth / 20}px`;
+
+    while (textElement.scrollWidth > containerWidth || textElement.scrollHeight > containerHeight) {
+        const fontSize = parseFloat(window.getComputedStyle(textElement).fontSize);
+        textElement.style.fontSize = `${fontSize - 1}px`;
+    }
+};
